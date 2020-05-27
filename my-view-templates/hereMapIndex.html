@@ -1,37 +1,39 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>HERE map</title>
-        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-        <link rel="stylesheet" type="text/css" href="static/mitm.css">
-        <script src="https://js.api.here.com/v3/3.1/mapsjs-core.js"
-            type="text/javascript" charset="utf-8"></script>
-        <script src="https://js.api.here.com/v3/3.1/mapsjs-service.js"
-            type="text/javascript" charset="utf-8"></script>
-        <script src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js"
-            type="text/javascript" charset="utf-8"></script><script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-        <script type="text/javascript" src="static/mitm.js"></script> 
-        <script src="https://js.api.here.com/v3/3.1/mapsjs-ui.js"
-            type="text/javascript" charset="utf-8"></script>
-            <script src="https://js.api.here.com/v3/3.1/mapsjs-service.js"
-            type="text/javascript" charset="utf-8"></script>
-         <script src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js"
-            type="text/javascript" charset="utf-8"></script>
-        
-        <link rel="stylesheet" type="text/css"href="https://js.api.here.com/v3/3.1/mapsjs-ui.css" />
-    </head>
-    <body>
-        <script>
-            var apiKey = '{{ hereApiKey }}';
-            var coords = JSON.parse('{{ coords | tojson | safe }}');
-        </script>
-        <div>
-            <h2> Ryans HERE Map </h2>
-            <div id="mapContainer"></div>
-        </div>
-        
-    </body>
-    <footer>
+<head>
+    <title>MitM App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="static/mitm.css">  
+    <link rel="stylesheet" type="text/css"href="https://js.api.here.com/v3/3.1/mapsjs-ui.css" />
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" media="screen">
+</head>
+<body>
+    <script>
+        var apiKey = '{{ hereApiKey }}';
+        var coords = JSON.parse('{{ coords | tojson | safe }}');
+    </script>
 
-    </footer>
+
+
+    <div>
+        <h2> Meet in the Middle Map </h2>
+        <div id="mapContainer"></div>
+    </div>    
+
+
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="static/mitm.js" type="text/javascript"></script>
+    <script src="https://js.api.here.com/v3/3.1/mapsjs-core.js"
+        type="text/javascript" charset="utf-8"></script>
+    <script src="https://js.api.here.com/v3/3.1/mapsjs-service.js"
+        type="text/javascript" charset="utf-8"></script>
+    <script src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js"
+        type="text/javascript" charset="utf-8"></script>
+    <script type="text/javascript" src="static/mitm.js"></script> 
+    <script src="https://js.api.here.com/v3/3.1/mapsjs-ui.js"
+        type="text/javascript" charset="utf-8"></script>
+    <script src="https://js.api.here.com/v3/3.1/mapsjs-service.js"
+        type="text/javascript" charset="utf-8"></script>        
+</body>
+<footer></footer>
 </html>

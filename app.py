@@ -12,7 +12,6 @@ app = Flask(__name__, template_folder='my-view-templates/')
 app.config.from_object(os.environ['APP_SETTINGS'])
 app.config['GOOGLEMAPS_KEY'] = os.getenv('GOOGLEMAPS_KEY')
 
-
 # initialize extensions
 GoogleMaps(app)
 
