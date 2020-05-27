@@ -6,11 +6,12 @@ from dotenv import load_dotenv
 
 from modules import get_locations
 
-
 load_dotenv(verbose=True)
 
 app = Flask(__name__, template_folder='my-view-templates/')
 app.config.from_object(os.environ['APP_SETTINGS'])
+app.config['GOOGLEMAPS_KEY'] = os.getenv('GOOGLEMAPS_KEY')
+
 
 # initialize extensions
 GoogleMaps(app)
@@ -43,7 +44,7 @@ def here_map():
 
     return render_template(
         'hereMapIndex.html',
-        hereApiKey=app.config.get('HERE_API_KEY'),
+        hereApiKey=os.getenv('HERE_API_KEY'),
         coords=current_loc)
 
 if __name__ == "__main__":

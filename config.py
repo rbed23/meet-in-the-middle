@@ -11,8 +11,6 @@ class Config(object):
     DEBUG = False
     EXPLAIN_TEMPLATE_LOADING = False
     SECRET_KEY = 'this-really-needs-to-be-changed'
-    GOOGLEMAPS_KEY='AIzaSyC6E6P0zrsWigi7WzyaJza0PuDILDuRAMY'
-    HERE_API_KEY='vSWHspuwN3ZIORZTE_YI82GGths1RXMMu9YLBv99PvM'
     TESTING = False
 
 
