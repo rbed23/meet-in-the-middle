@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html ng-app="mitmApp">
+<head>
+    <title>MitM App</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet" media="screen">      
+    <link rel="stylesheet" type="text/css" href="static/mitmGmaps.css">  
+</head>
+<body ng-controller="mitmController">
+    <script>
+        var coords = JSON.parse('{{ coords | tojson | safe }}');
+    </script>
+
+
+    <div class="appContainer">
+        <div class="row">
+            <div id="mapContainer" class="col-sm-8"></div>
+            <div id="typeContainer" class="col-sm-4">
+                <h3>Set Precision</h3>
+                <form id="precisionForm">
+                    <select name="precision" 
+                            ng-model="areaPrecisionSet"
+                            ng-options="option.set for option in areaPrecision"
+                            ng-change="changePrecision()"></select>
+                            {% raw %}{{ areaPrecisionSet.r }}{% endraw %} (meters)
+
+                </form><br><br>
+                <h3>Select Types</h3>
+                <form id="typeForm">
+                    
+                    <div ng-repeat="each in inputCategories">
+                        <label for="each">
+                            <input id="catItem"
+                            type="checkbox" 
+                            name="selectedCats[]" 
+                            ng-model="each.selected">
+                            {% raw %}{{ each.name }}{% endraw %}
+                        </label>
+                        <br>
+                    </div>
+                    
+                </form>
+            </div>
+        </div>    
+    </div>
+
+
+
+    <script
+    src="https://maps.googleapis.com/maps/api/js?key={{gmapsApiKey}}&callback=initMap&libraries=places&v=weekly"
+    defer
+    async
+    ></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.js"></script>
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.9/angular.js"></script>
+    <script src="static/mitmGmaps.js" type="text/javascript"></script>
+  
+</body>
+</html>

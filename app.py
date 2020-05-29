@@ -10,7 +10,6 @@ load_dotenv(verbose=True)
 
 app = Flask(__name__, template_folder='my-view-templates/')
 app.config.from_object(os.environ['APP_SETTINGS'])
-app.config['GOOGLEMAPS_KEY'] = os.getenv('GOOGLEMAPS_KEY')
 
 # initialize extensions
 GoogleMaps(app)
@@ -37,6 +36,7 @@ def mapview():
 
     return render_template('index.html', ryan=ryans_map)
 
+
 @app.route("/here")
 def here_map():
     current_loc = get_locations.get_current_loc()
@@ -45,6 +45,18 @@ def here_map():
         'hereMapIndex.html',
         hereApiKey=os.getenv('HERE_API_KEY'),
         coords=current_loc)
+
+
+@app.route("/gmaps")
+def gmaps_map():
+    current_loc = get_locations.get_current_loc()
+    print(current_loc)
+    return render_template(
+        'gmapsIndex.html',
+        gmapsApiKey=os.getenv('GOOGLEMAPS_KEY'),
+        coords=current_loc)
+
+
 
 if __name__ == "__main__":
     app.run(debug=True)
