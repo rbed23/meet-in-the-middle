@@ -6,24 +6,36 @@
 
 
 .appContainer {
-    align-items: center;
-    clear: both;
+    text-align: center;
+    margin: auto;
+    width: 1000px;
+}
+
+.form-control {
+    width: 300px;
+    margin: 4px auto;
+}
+
+.infoWindowContent {
+    background-color: blue;
+}
+
+#mitmView, #locInputForm {
+    border-color: black;
+    border-width: medium; 
+    background-color: grey;
 }
 
 #mapContainer {
-    width: 75%;
-    max-width: 800px;
+    width: 100%;
     height: 500px;
+    float: left;
+    display: inline-block;
 }
 
-#precision {
-    display: inline-block;
-    width: 60px;  
-}
-
-#catItem {
-    display: inline-block;
-    width: 60px;
+#typeContainer {
+    text-align: left;
+    float: right;
 }
 
 #goCenterUI, #setCenterUI, #clearMapUI {
@@ -46,6 +58,6 @@
     padding-right: 5px;
   }
 
-  #setCenterUI {
+  #setCenterUI, #clearMapUI {
     margin-left: 12px;
   }

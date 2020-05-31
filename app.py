@@ -49,12 +49,11 @@ def here_map():
 
 @app.route("/gmaps")
 def gmaps_map():
-    current_loc = get_locations.get_current_loc()
-    print(current_loc)
     return render_template(
         'gmapsIndex.html',
         gmapsApiKey=os.getenv('GOOGLEMAPS_KEY'),
-        coords=current_loc)
+        coords=get_locations.get_current_loc(),
+        ipGeoKey=os.getenv('IPGEOLOC_KEY'))
 
 
 
