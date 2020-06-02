@@ -85,6 +85,39 @@
                     </div>
                     
                 </form>
+
+                <br>
+
+                <div id="locInputForm" class="row">
+                    <h3>Add Name(s)</h3>
+                    <form role="form" ng-submit="initRemoteAddListener()">
+        
+                        <div class="form-group" style="text-align: center;">
+            
+                          <input class="form-control" type="text" id="addName"
+                                ng-model="addName" required name="addName"
+                                placeholder="Enter Name..." style="width: 75%;">
+    
+                          
+                           <br>
+        
+                          <button type="submit" class="btn btn-primary"
+                                  ng-disabled="loading">{% raw %}{{ submitButtonTextAddName }}{% endraw %}</button>
+                          <br><br>
+                        </div>
+            
+                        <div class="alert alert-danger" role="alert" ng-show='urlerror' style="text-align: left;">
+                          <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                          <span class="sr-only">Error:</span>
+                          <span>
+                            There was one or more error(s) submitting your URL.<br>
+                            {% raw %}
+                            <div ng-repeat="err in responseData">
+                                >>> {{ err }}<br>
+                            </div>
+                            {% endraw %}
+                            Please check to make sure your URL is valid before trying again...</span>
+                        </div>
             </div>
         </div>    
     </div>

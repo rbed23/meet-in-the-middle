@@ -3,7 +3,7 @@
 
     angular.module('mitmApp', [])
 
-    .controller('mitmController', ['$scope', '$http', 'filterFilter', function getMidptCtrl($scope, $http,filterFilter) {
+    .controller('mitmController', ['$scope', '$http', 'filterFilter', function ($scope, $http, filterFilter) {
 
         $scope.map = null;
         $scope.markersGroup = [];
@@ -11,9 +11,13 @@
         $scope.midptCirclesGroup = [];
         $scope.resultsGroup = [];
         $scope.midptMarkerCoords = null;
-        $scope.midptCircle = null;     
+        $scope.midptCircle = null;
+        var mapBounds = null;
+        var infoWindow = null;
+
         
         $scope.submitButtonText = "Submit";
+        $scope.submitButtonTextAddName = "Submit";
         $scope.addingEvent = false;
         $scope.inputError = false;
     
@@ -74,14 +78,39 @@
 
                     //MidptGroupControl(controlDiv, $scope.map, myCoords)
 
-                    $scope.infoWindow = new google.maps.InfoWindow();
-
+                    mapBounds = new google.maps.LatLngBounds();
+                    infoWindow = new google.maps.InfoWindow();
                     initMapObjects(myCoords);
                 } // from else
                 
             }) //from getLocation
                 
         } //from initMap
+
+
+
+
+        $scope.initRemoteAddListener = function() {
+            $scope.submitButtonTextAddName = "Loading...";
+            $scope.addingEvent = true;
+
+            var addName = $scope.addName;
+
+            $http({method: 'GET', url: "/gmaps/addMe/" + addName})
+            .success(function(result) {
+                console.log("success! Hey ", addName, result)
+                var remoteMarker = createMarker(result.coords, result.name)
+                $scope.markersGroup.push(remoteMarker);
+                findMiddle();
+            })
+            .error(function(result) {
+                console.log('error: ', result)
+            });
+
+            $scope.submitButtonTextAddName = "Submit"
+            $scope.addingEvent = false;
+        }
+    
 
 
 
@@ -225,8 +254,8 @@
             var mousedUp = true;
             
             google.maps.event.addListener(marker, 'click', function(){
-                $scope.infoWindow.setContent('<h2>' + marker.title + '</h2>' + marker.content );
-                $scope.infoWindow.open($scope.map, marker);
+                infoWindow.setContent('<h2>' + marker.title + '</h2>' + marker.content );
+                infoWindow.open($scope.map, marker);
             });
 
             google.maps.event.addListener(marker, 'mousedown', function(e){ 
@@ -247,19 +276,10 @@
 
 
         function setupCircleListener(circle) {
-            var mousedUp = true;
             
-            google.maps.event.addListener( circle, 'mousedown', function(e){ 
-                console.log('in mousedown', e)
-                mousedUp = false;
-                setTimeout(function(){
-                    if(mousedUp === false){
-                        meetHere(e.latLng);        
-                    }
-                }, 500);
-            });
-            google.maps.event.addListener(circle, 'mouseup', function(e){ 
-                mousedUp = true;
+            google.maps.event.addListener(circle, 'dragend', function(e){ 
+                console.log('in circle listener', e)
+                getPlaces();
             });
             
         } // setupCircleListener
@@ -278,6 +298,8 @@
             for (var i=0; i < $scope.markersGroup.length; i++) {
                 x.push($scope.markersGroup[i].position.lng());
                 y.push($scope.markersGroup[i].position.lat());
+
+                mapBounds.extend($scope.markersGroup[i].position);
             }
 
             var midpt_x = x.reduce((a,b) => a+b, 0) / x.length;
@@ -300,6 +322,9 @@
                 });
 
             $scope.midptMarkersGroup.push(midptMarker);
+
+            $scope.map.fitBounds(mapBounds);
+
             getMidptCircle();
     
         }; // findMiddle
@@ -320,9 +345,11 @@
                 fillOpacity: 0.35,
                 map: $scope.map,
                 center: midptMarkerCoords,
-                radius: $scope.areaPrecisionSet.r
+                radius: $scope.areaPrecisionSet.r,
+                draggable: true
             })
             $scope.midptCirclesGroup.push(midptCircle);
+            setupCircleListener(midptCircle);
             getPlaces();
 
         } // getMidptCircle

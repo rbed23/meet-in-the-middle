@@ -1,4 +1,5 @@
 import os
+import random
 
 from flask import Flask, render_template
 from flask_googlemaps import GoogleMaps, Map
@@ -54,6 +55,15 @@ def gmaps_map():
         gmapsApiKey=os.getenv('GOOGLEMAPS_KEY'),
         coords=get_locations.get_current_loc(),
         ipGeoKey=os.getenv('IPGEOLOC_KEY'))
+
+@app.route("/gmaps/addMe/<name>", methods=["GET"])
+def returnSomething(name):
+    coords = get_locations.get_current_loc()
+    coords["lat"] += random.uniform(-0.02, 0.02)
+    coords["lng"] += random.uniform(-0.02, 0.02)
+    
+    return {"coords": coords,
+            "name": name}
 
 
 
