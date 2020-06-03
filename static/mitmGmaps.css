@@ -29,13 +29,16 @@
 #mapContainer {
     width: 100%;
     height: 500px;
-    float: left;
     display: inline-block;
 }
 
 #typeContainer {
     text-align: left;
     float: right;
+}
+
+#keywordValue {
+    width: 75%;
 }
 
 #goCenterUI, #setCenterUI, #clearMapUI {

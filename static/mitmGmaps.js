@@ -3,7 +3,7 @@
 
     angular.module('mitmApp', [])
 
-    .controller('mitmController', ['$scope', '$http', 'filterFilter', function ($scope, $http, filterFilter) {
+    .controller('mitmController', ['$scope', '$http', '$timeout', 'filterFilter', function ($scope, $http, $timeout, filterFilter) {
 
         $scope.map = null;
         $scope.markersGroup = [];
@@ -15,9 +15,11 @@
         var mapBounds = null;
         var infoWindow = null;
 
+
         
         $scope.submitButtonText = "Submit";
         $scope.submitButtonTextAddName = "Submit";
+        $scope.keywordValue = "";
         $scope.addingEvent = false;
         $scope.inputError = false;
     
@@ -47,10 +49,6 @@
         function initMap() {
             getLocation(ipGeoKey, function cb(response) {
 
-                console.log($scope.markersGroup,
-                $scope.midptMarkersGroup,
-                $scope.midptCirclesGroup,
-                $scope.resultsGroup);
                 if (response.status != 200) {
                     console.log('Could not load Map')
                     console.log(response.status + ': ' + 
@@ -101,6 +99,7 @@
                 console.log("success! Hey ", addName, result)
                 var remoteMarker = createMarker(result.coords, result.name)
                 $scope.markersGroup.push(remoteMarker);
+                $scope.addName = null;
                 findMiddle();
             })
             .error(function(result) {
@@ -157,15 +156,47 @@
         };
 
         $scope.$watch('inputCategories|filter:{selected:true}', function (newV) {
-            $scope.catSelect = [];
+            $scope.catSelect = {type: []};
             $scope.categorySelection = newV.map(function (inputCategories) {
-                $scope.catSelect.push(inputCategories.value)
+                if (inputCategories.name != 'Keyword') {
+                    $scope.catSelect.type.push(inputCategories.value)
+                } else {
+                    $scope.catSelect.keyword = $scope.keywordValue
+                }
             })
             if ($scope.midptCirclesGroup.length) {
                 getPlaces(midptCircle);
             }
         }, true);
 
+
+        $scope.$watch('inputCategories|filter:{selected:false}', function(nv) {
+            var check = nv.map(function (inputCategories) {
+                if (inputCategories.name == 'Keyword') {
+                    $scope.keywordValue = ""
+                }
+            })
+
+        }, true);
+
+
+        $scope.showKeyword = function(obj) {
+            return obj.hasOwnProperty('keyword');
+        }
+
+        $scope.updateKeyword = function(kw) {
+            $scope.catSelect.keyword = kw
+            console.log($scope.catSelect.keyword);
+        }
+
+        $scope.handleKeyword = function () {
+            if ($scope.midptCirclesGroup.length) {
+                console.log('getting places')
+                getPlaces();
+            } else {
+                console.log('no midpoint')
+            }
+        }
 
 
         $scope.addLocationForm = function () {
@@ -295,6 +326,7 @@
     
             var x = []
             var y = []
+
             for (var i=0; i < $scope.markersGroup.length; i++) {
                 x.push($scope.markersGroup[i].position.lng());
                 y.push($scope.markersGroup[i].position.lat());
@@ -332,25 +364,24 @@
 
 
         function getMidptCircle() {
-
-            if ($scope.midptCirclesGroup.length) {
-                $scope.midptCirclesGroup.forEach((obj) => obj.setMap(null));
-            }
-
-            midptCircle = new google.maps.Circle({
-                strokeColor: '#FF0000',
-                strokeOpacity: 0.8,
-                strokeWeight: 2,
-                fillColor: '#FF0000',
-                fillOpacity: 0.35,
-                map: $scope.map,
-                center: midptMarkerCoords,
-                radius: $scope.areaPrecisionSet.r,
-                draggable: true
-            })
-            $scope.midptCirclesGroup.push(midptCircle);
-            setupCircleListener(midptCircle);
-            getPlaces();
+                if ($scope.midptCirclesGroup.length) {
+                    $scope.midptCirclesGroup.forEach((obj) => obj.setMap(null));
+                }
+    
+                midptCircle = new google.maps.Circle({
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillColor: '#FF0000',
+                    fillOpacity: 0.35,
+                    map: $scope.map,
+                    center: midptMarkerCoords,
+                    radius: $scope.areaPrecisionSet.r,
+                    draggable: true
+                })
+                $scope.midptCirclesGroup.push(midptCircle);
+                setupCircleListener(midptCircle);
+                $timeout(getPlaces(), 100);
 
         } // getMidptCircle
 
@@ -364,13 +395,18 @@
             }
             
             //var typeInput = $scope.catSelect.join("|")
-            console.log($scope.catSelect);
             var searchParams = {
                 location: midptCircle.center,
                 radius: midptCircle.radius,
                 limit: 10,
-                type: $scope.catSelect
+                type: $scope.catSelect.type
+            };
+
+            if ($scope.catSelect.keyword && $scope.catSelect.keyword !="[enter keyword]") {
+                searchParams.keyword = $scope.catSelect.keyword;
             }
+
+            console.log(searchParams)
 
             resultsService.nearbySearch(searchParams, nearbyResultsCallback);
         }; // getPlaces
@@ -464,5 +500,22 @@
         }; // MidptControlGroup
     
 
-    }]); // controller
+    }]) // controller
+
+    .directive('inputEnter', function() {
+        return function(scope, element, attrs) {
+            element.bind("keydown", "keypress", function(event) {
+                if(event.which === 13) {
+                    console.log('in directive')
+                    scope.$apply(function(){
+                        scope.$eval(attrs.inputEnter, {'event': event});
+                    });
+
+                    event.preventDefault();
+                }
+            });
+        };
+    });
+
+
 })(); // app
