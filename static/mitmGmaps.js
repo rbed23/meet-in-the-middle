@@ -3,7 +3,7 @@
 
     angular.module('mitmApp', [])
 
-    .controller('mitmController', ['$scope', '$http', '$timeout', 'filterFilter', function ($scope, $http, $timeout, filterFilter) {
+    .controller('mitmController', ['$scope', '$http', '$timeout', '$compile', 'filterFilter', function ($scope, $http, $timeout, $compile, filterFilter) {
 
         $scope.map = null;
         $scope.markersGroup = [];
@@ -46,6 +46,7 @@
         initMap();    
 
 
+
         function initMap() {
             getLocation(ipGeoKey, function cb(response) {
 
@@ -65,7 +66,7 @@
                         zoom: 13,
                         disableDoubleClickZoom: true
                     });
-                    console.log(myCoords)
+
                     // Create a div to hold the control panel
                     var controlDiv = document.createElement('div');
                     var centerControl = new MidptGroupControl(controlDiv, $scope.map, myCoords);
@@ -96,7 +97,6 @@
 
             $http({method: 'GET', url: "/gmaps/addMe/" + addName})
             .success(function(result) {
-                console.log("success! Hey ", addName, result)
                 var remoteMarker = createMarker(result.coords, result.name)
                 $scope.markersGroup.push(remoteMarker);
                 $scope.addName = null;
@@ -191,7 +191,6 @@
 
         $scope.handleKeyword = function () {
             if ($scope.midptCirclesGroup.length) {
-                console.log('getting places')
                 getPlaces();
             } else {
                 console.log('no midpoint')
@@ -229,13 +228,35 @@
                 icon: icon,
                 data: data
             });
-            marker.content = '<div class="infoWindowContent>' + name + '</div>'
+            content = markerContentWindow(marker);
 
-            setupMarkerListener(marker);
+            setupMarkerListener(marker, content);
 
             return marker;
         }; /// createMarker
 
+
+
+        function markerContentWindow(marker) {
+            var initContent = '<div class="infoWindowContent">' + marker.title;
+            if (marker.data) {
+                initContent += (marker.data.business_status) ? "<br>Business Status: " + marker.data.business_status : "";
+                initContent += (marker.data.rating) ? "<br>Overall Rating: " + marker.data.rating : "";
+                if (marker.data.photos) {
+                    htmlAttr = marker.data.photos[0].html_attributions[0];
+                    htmlAttr = htmlAttr.replace("<a", "<a target='_blank'")
+                    initContent += "<br>Photos: " + htmlAttr
+                }
+            }
+
+            $scope.meetHereCoords = marker.position;
+            var goButton = "<br><input type='button' value='Go Here!' ng-click='meetHere(meetHereCoords)'>"
+            initContent += goButton + "</div>"
+
+
+
+            return initContent;
+        }
   
          
         $scope.openInfoWindow = function(e, selectedMarker){
@@ -281,11 +302,15 @@
 
         } // setupMapListener
 
-        function setupMarkerListener(marker) {
+        function setupMarkerListener(marker, content) {
             var mousedUp = true;
             
+            // compile content to be accessible from gMaps DOM
+            // makes accessible to ng functions (eg. 'ng-click')
+            var compiledContent = $compile(content)($scope)
+
             google.maps.event.addListener(marker, 'click', function(){
-                infoWindow.setContent('<h2>' + marker.title + '</h2>' + marker.content );
+                infoWindow.setContent(compiledContent[0]);
                 infoWindow.open($scope.map, marker);
             });
 
@@ -298,6 +323,7 @@
                     }
                 }, 500);
             });
+
             google.maps.event.addListener(marker, 'mouseup', function(e){ 
                 mousedUp = true;
             });
@@ -309,15 +335,19 @@
         function setupCircleListener(circle) {
             
             google.maps.event.addListener(circle, 'dragend', function(e){ 
-                console.log('in circle listener', e)
                 getPlaces();
             });
             
         } // setupCircleListener
 
 
-        function meetHere(coords) {
+
+        $scope.meetHere = function (coords) {
+
             console.log('Lets meet here!!', coords);
+            
+            // get routes to location
+        
         } // meetHere
 
 
@@ -337,7 +367,7 @@
             var midpt_x = x.reduce((a,b) => a+b, 0) / x.length;
             var midpt_y = y.reduce((a,b) => a+b, 0) / y.length;
 
-            midptMarkerCoords = {
+            $scope.midptMarkerCoords = {
                 lat: midpt_y,
                 lng: midpt_x
             }
@@ -348,7 +378,7 @@
 
             var midptMarker = new google.maps.Marker({
                     map: $scope.map,
-                    position: midptMarkerCoords,
+                    position: $scope.midptMarkerCoords,
                     title: 'MitM Point',
                     icon: 'http://maps.google.com/mapfiles/ms/icons/green.png',
                 });
@@ -367,7 +397,7 @@
                 if ($scope.midptCirclesGroup.length) {
                     $scope.midptCirclesGroup.forEach((obj) => obj.setMap(null));
                 }
-    
+
                 midptCircle = new google.maps.Circle({
                     strokeColor: '#FF0000',
                     strokeOpacity: 0.8,
@@ -375,7 +405,7 @@
                     fillColor: '#FF0000',
                     fillOpacity: 0.35,
                     map: $scope.map,
-                    center: midptMarkerCoords,
+                    center: $scope.midptMarkerCoords,
                     radius: $scope.areaPrecisionSet.r,
                     draggable: true
                 })
@@ -401,12 +431,12 @@
                 limit: 10,
                 type: $scope.catSelect.type
             };
+            console.log(searchParams)
 
-            if ($scope.catSelect.keyword && $scope.catSelect.keyword !="[enter keyword]") {
+            if ($scope.catSelect.keyword && $scope.catSelect.keyword !="") {
                 searchParams.keyword = $scope.catSelect.keyword;
             }
 
-            console.log(searchParams)
 
             resultsService.nearbySearch(searchParams, nearbyResultsCallback);
         }; // getPlaces
@@ -416,8 +446,8 @@
         function nearbyResultsCallback(results, status, nextPage) {
     
             if (status == google.maps.places.PlacesServiceStatus.OK) {
-                console.log(nextPage)
-                console.log(results);
+                //console.log(nextPage)
+                //console.log(results);
                 for (var i = 0; i < results.length; i++) {
                     var resMarker = createMarker(results[i].geometry.location, results[i].name, results[i].icon, results[i])
                     $scope.resultsGroup.push(resMarker);
@@ -470,8 +500,7 @@
 
 
             goCenterUI.addEventListener('click', function() {
-                var currentCenter = control.getCenter();
-                map.setCenter(currentCenter)
+                map.setCenter($scope.midptMarkerCoords)
             });
     
             setCenterUI.addEventListener('click', function() {

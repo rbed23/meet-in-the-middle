@@ -17,7 +17,8 @@
 }
 
 .infoWindowContent {
-    background-color: blue;
+    background-color: lightgoldenrodyellow;
+    font-size: medium;
 }
 
 #mitmView, #locInputForm {
