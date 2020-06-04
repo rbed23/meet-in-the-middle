@@ -12,8 +12,15 @@
         $scope.resultsGroup = [];
         $scope.midptMarkerCoords = null;
         $scope.midptCircle = null;
+        $scope.meetHereMarker = null;
+
         var mapBounds = null;
         var infoWindow = null;
+        var resultsService = null;
+        var directionsService = null;
+        var directionRenders = [];
+
+
 
 
         
@@ -75,14 +82,17 @@
                     controlDiv.style['paddingLeft'] = '10px';
                     $scope.map.controls[google.maps.ControlPosition.BOTTOM_CENTER].push(controlDiv);
 
-                    //MidptGroupControl(controlDiv, $scope.map, myCoords)
-
                     mapBounds = new google.maps.LatLngBounds();
                     infoWindow = new google.maps.InfoWindow();
+                    resultsService = new google.maps.places.PlacesService($scope.map);
+                    directionsService = new google.maps.DirectionsService();
+
                     initMapObjects(myCoords);
+
                 } // from else
                 
             }) //from getLocation
+
                 
         } //from initMap
 
@@ -247,13 +257,15 @@
                     htmlAttr = htmlAttr.replace("<a", "<a target='_blank'")
                     initContent += "<br>Photos: " + htmlAttr
                 }
+                initContent += (marker.data.geometry) ? "<br>Lat: " + marker.data.geometry.location.lat() + " Lng: " + marker.data.geometry.location.lng() : "";
+
+
+
+                var goButton = "<br><input type='button' value='Go Here!' ng-click='meetHere(meetHereMarker)'>"
+
             }
 
-            $scope.meetHereCoords = marker.position;
-            var goButton = "<br><input type='button' value='Go Here!' ng-click='meetHere(meetHereCoords)'>"
             initContent += goButton + "</div>"
-
-
 
             return initContent;
         }
@@ -302,6 +314,8 @@
 
         } // setupMapListener
 
+
+
         function setupMarkerListener(marker, content) {
             var mousedUp = true;
             
@@ -312,6 +326,8 @@
             google.maps.event.addListener(marker, 'click', function(){
                 infoWindow.setContent(compiledContent[0]);
                 infoWindow.open($scope.map, marker);
+
+                $scope.meetHereMarker = marker
             });
 
             google.maps.event.addListener(marker, 'mousedown', function(e){ 
@@ -342,13 +358,48 @@
 
 
 
-        $scope.meetHere = function (coords) {
+        $scope.meetHere = function (meetMarker) {
 
-            console.log('Lets meet here!!', coords);
+            console.log('Lets meet here!! (position)', meetMarker.position.lat(), meetMarker.position.lng());
+            console.log('marker geometry', meetMarker.data.geometry.location.lat(), meetMarker.data.geometry.location.lng());
             
+            if (directionRenders.length) {
+                console.log(directionRenders)
+                directionRenders.forEach((obj) => obj.setMap(null));
+
+            }
             // get routes to location
+            for (var i=0; i<$scope.markersGroup.length; i++) {
+                var thisMarker = $scope.markersGroup[i]
+                var thisRender = new google.maps.DirectionsRenderer({map: $scope.map, preserveViewport: true});
+                directionRenders.push(thisRender)
+                calculateRoute(thisMarker, meetMarker, thisRender)
+            }
         
         } // meetHere
+
+
+
+
+        function calculateRoute(startMk, endMk, directionRenderer) {
+
+            console.log('calculating route from: ' + startMk.title + " to: " + endMk.title);
+
+            var request = {
+                origin: startMk.position,
+                destination: endMk.position,
+                travelMode: 'WALKING'
+            }
+
+            directionsService.route(request, function(result, status) {
+                if (status == 'OK') {
+                    directionRenderer.setDirections(result)
+                }
+            })
+
+
+
+        } // calculateRoute
 
 
 
@@ -418,7 +469,6 @@
 
 
         function getPlaces() {
-            var resultsService = new google.maps.places.PlacesService($scope.map);
             
             if ($scope.resultsGroup.length) {
                 $scope.resultsGroup.forEach((obj) => obj.setMap(null));
